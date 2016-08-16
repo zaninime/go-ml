@@ -16,7 +16,7 @@ type PacketAssembly struct {
 // NewPacketAssembly returns a PacketAssembly initialized using the parameters
 // found in the header of pkt. Next packets feeded using Push will not modify
 // the total size boundary.
-func NewPacketAssembly(pkt Packet) *PacketAssembly {
+func NewPacketAssembly(pkt *Packet) *PacketAssembly {
 	pa := PacketAssembly{}
 	pa.Buffer = make([]byte, pkt.ContentTotalSize)
 	pa.holes = list.New()
@@ -35,7 +35,7 @@ func NewPacketAssembly(pkt Packet) *PacketAssembly {
 // Push adds the packet to the assembly by copying the content into the
 // buffer at the right position.
 // Out of bounds packet are ignored.
-func (pa *PacketAssembly) Push(pkt Packet) {
+func (pa *PacketAssembly) Push(pkt *Packet) {
 	fragmentFirst := int(pkt.ContentOffset)
 	fragmentLast := int(pkt.ContentOffset) + len(pkt.Content) - 1
 	for ihole := pa.holes.Front(); ihole != nil; {

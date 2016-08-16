@@ -20,27 +20,27 @@ var _ = Describe("Assembly", func() {
 	Describe("creation", func() {
 		It("should copy the buffer in the right position", func() {
 			pkt := Packet{ContentTotalSize: 4, ContentOffset: 2, Content: []byte{0xaa, 0xbb}}
-			a := NewPacketAssembly(pkt)
+			a := NewPacketAssembly(&pkt)
 			Expect(bytes.Equal(a.Buffer[2:], []byte{0xaa, 0xbb})).To(BeTrue())
 			Expect(a.Ready()).To(BeFalse())
 		})
 
 		It("should work correctly with unary fragments", func() {
 			pkt := Packet{ContentTotalSize: 4, ContentOffset: 0, Content: []byte{0xaa, 0xbb, 0xcc, 0xdd}}
-			a := NewPacketAssembly(pkt)
+			a := NewPacketAssembly(&pkt)
 			Expect(a.Ready()).To(BeTrue())
 		})
 	})
 
 	Describe("fragment push", func() {
 		pkt1 := Packet{ContentTotalSize: 4, ContentOffset: 2, Content: []byte{0xaa, 0xbb}}
-		a := NewPacketAssembly(pkt1)
+		a := NewPacketAssembly(&pkt1)
 		It("shouldn't be ready", func() {
 			Expect(a.Ready()).To(BeFalse())
 		})
 		It("should copy the buffer in the right position", func() {
 			pkt2 := Packet{ContentTotalSize: 4, ContentOffset: 0, Content: []byte{0xcc, 0xdd}}
-			a.Push(pkt2)
+			a.Push(&pkt2)
 			Expect(bytes.Equal(a.Buffer[2:], []byte{0xaa, 0xbb})).To(BeTrue())
 			Expect(bytes.Equal(a.Buffer[:2], []byte{0xcc, 0xdd})).To(BeTrue())
 		})
@@ -73,7 +73,7 @@ var _ = Describe("Assembly", func() {
 			order[i] = i
 		}
 		shuffle(order)
-		a := NewPacketAssembly(pkts[order[0]])
+		a := NewPacketAssembly(&pkts[order[0]])
 		order = order[1:]
 		It("shouldn't be ready right after creation", func() {
 			Expect(a.Ready()).To(BeFalse())
@@ -81,13 +81,13 @@ var _ = Describe("Assembly", func() {
 
 		It("shouldn't be ready for intermediate packets", func() {
 			for _, v := range order[:len(order)-1] {
-				a.Push(pkts[v])
+				a.Push(&pkts[v])
 				Expect(a.Ready()).To(BeFalse())
 			}
 		})
 
 		It("should be ready after injecting the final packet", func() {
-			a.Push(pkts[order[len(order)-1]])
+			a.Push(&pkts[order[len(order)-1]])
 			Expect(a.Ready()).To(BeTrue())
 		})
 
